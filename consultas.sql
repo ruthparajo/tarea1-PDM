@@ -51,3 +51,29 @@ WHERE
   rank <= 5
 ORDER BY 
   mes, rank;
+
+Consulta 2
+
+WITH intervenciones_mes AS (
+  SELECT 
+    p.nombre_partido AS partido_politico,
+    DATE_TRUNC(i.FECHA, MONTH) AS mes,
+    COUNT(i.ID) AS total_intervenciones
+  FROM `proceso-de-datos-454919.tarea1.intervenciones` i
+  JOIN `proceso-de-datos-454919.tarea1.parlamentarios` pa ON i.PARLAMENTARIO_ID = pa.id_parlamentario
+  JOIN `proceso-de-datos-454919.tarea1.partidos` p ON pa.PARTIDO_ID = p.id_partido
+  GROUP BY p.nombre_partido, mes
+)
+SELECT 
+  partido_politico,
+  mes,
+  AVG(total_intervenciones) OVER (
+    PARTITION BY partido_politico
+    ORDER BY mes
+    ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+  ) AS media_movil_intervenciones
+FROM intervenciones_mes
+ORDER BY mes;
+
+
+
