@@ -76,4 +76,33 @@ FROM intervenciones_mes
 ORDER BY mes;
 
 
+Constulta 4
+
+WITH temas_trimestre AS (
+  SELECT 
+    p.nombre_partido AS partido_politico,
+    DATE_TRUNC(i.FECHA, QUARTER) AS trimestre,
+    k.palabra AS tema,
+    COUNT(k.id_keyword) AS frecuencia
+  FROM `proceso-de-datos-454919.tarea1.intervenciones` i
+  JOIN `proceso-de-datos-454919.tarea1.parlamentarios` pa ON i.PARLAMENTARIO_ID = pa.id_parlamentario
+  JOIN `proceso-de-datos-454919.tarea1.partidos` p ON pa.PARTIDO_ID = p.id_partido
+  JOIN `proceso-de-datos-454919.tarea1.intervenciones_keywords` ik ON i.ID = ik.intervencion_id
+  JOIN `proceso-de-datos-454919.tarea1.keywords` k ON ik.keyword_id = k.id_keyword
+  GROUP BY p.nombre_partido, trimestre, k.palabra
+)
+SELECT 
+  partido_politico,
+  trimestre,
+  tema AS tema_principal
+FROM temas_trimestre t1
+WHERE frecuencia = (
+  SELECT MAX(t2.frecuencia)
+  FROM temas_trimestre t2
+  WHERE t2.partido_politico = t1.partido_politico
+    AND t2.trimestre = t1.trimestre
+)
+ORDER BY trimestre, partido_politico;
+
+
 
